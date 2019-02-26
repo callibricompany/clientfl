@@ -13,6 +13,4 @@ var config = {
 };
 firebase.initializeApp(config);
 
-console.log(process.env.APIKEY);
-
 module.exports = firebase;
