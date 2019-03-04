@@ -59,10 +59,10 @@ app.get('/register', function(req, res) {
 
 // Register button
 app.post('/register', function(req, res) {
-    email = req.body.username;
+    email = req.body.email;
     username = req.body.username; 
     password = req.body.password;
-    
+
     firebase.auth().createUserWithEmailAndPassword(email, password).then(data => {
         var db = firebase.firestore();
 
@@ -73,7 +73,18 @@ app.post('/register', function(req, res) {
         
         var user = firebase.auth().currentUser;
 
-        console.log(user);
+        console.log(user.uid);
+
+        // Add user information
+        db.collection("users").doc(user.uid).set(data)
+        .then(function() {
+            console.log("Document successfully written!");
+        })
+        .catch(function(error) {
+            console.error("Error writing document: ", error);
+        });
+
+        isConnected = 1;
           // Add a new document in collection "cities" with ID 'LA'
         // var setDoc = db.collection('users').doc('LA').set(data);
         res.render('pages/register',{email: email, isConnected: isConnected});
