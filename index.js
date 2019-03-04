@@ -73,8 +73,6 @@ app.post('/register', function(req, res) {
         
         var user = firebase.auth().currentUser;
 
-        console.log(user.uid);
-
         // Add user information
         db.collection("users").doc(user.uid).set(data)
         .then(function() {
@@ -85,8 +83,7 @@ app.post('/register', function(req, res) {
         });
 
         isConnected = 1;
-          // Add a new document in collection "cities" with ID 'LA'
-        // var setDoc = db.collection('users').doc('LA').set(data);
+
         res.render('pages/register',{email: email, isConnected: isConnected});
 
         }).catch(function(error) {
