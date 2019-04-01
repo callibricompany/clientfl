@@ -4,11 +4,18 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var firebase = require('./connect');
 var app = express();
+var axios = require('axios');
+require('dotenv').config();
 
 var isConnected = 0;
 var email = '';
-var username = '';
+var name = ''; 
+var firstname = '';
 var password = '';
+var phone = '';
+var independant = '';
+var company = '';
+var organization = '';
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
@@ -60,15 +67,30 @@ app.get('/register', function(req, res) {
 // Register button
 app.post('/register', function(req, res) {
     email = req.body.email;
-    username = req.body.username; 
+    name = req.body.name; 
+    firstname = req.body.firstname;
     password = req.body.password;
+    phone = req.body.phone;
+    independant = req.body.independant ? true : false;
+    company = req.body.company;
+    organization = req.body.organization;
+
+    console.log(independant);
 
     firebase.auth().createUserWithEmailAndPassword(email, password).then(data => {
         var db = firebase.firestore();
 
         var data = {
             email: email,
-            username: username
+            name : name, 
+            firstname : firstname,
+            phone : phone,
+            independant : independant,
+            company : company,
+            organization : organization,
+            supervisor: false,
+            validated: false,
+            zohocode : ''
           };
         
         var user = firebase.auth().currentUser;
@@ -96,5 +118,24 @@ app.post('/register', function(req, res) {
 
 });
 
+app.get('/idtoken', function(req,res) {
+
+    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+        // Send token to your backend via HTTPS
+        axios.post(process.env.URLCLOUD9 + '/checkauth', {
+            idToken: idToken
+          })
+          .then(function (response) {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
+    }).catch(function(error) {
+        console.log(error);
+    });
+});
+
 app.listen(8080);
-console.log('8080 is the magic port');
+console.log('8080 is the clientfl port');
