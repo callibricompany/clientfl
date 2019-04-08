@@ -40,7 +40,6 @@ app.post('/', function(req, res) {
     password = req.body.password;
 
     firebase.auth().signInWithEmailAndPassword(email, password).then(() =>{
-        var db = firebase.firestore();
         
         isConnected = 1;
 
@@ -75,38 +74,40 @@ app.post('/register', function(req, res) {
     company = req.body.company;
     organization = req.body.organization;
 
-    console.log(independant);
-
     firebase.auth().createUserWithEmailAndPassword(email, password).then(data => {
-        var db = firebase.firestore();
 
-        var data = {
-            email: email,
-            name : name, 
-            firstname : firstname,
-            phone : phone,
-            independant : independant,
-            company : company,
-            organization : organization,
-            supervisor: false,
-            validated: false,
-            zohocode : ''
-          };
-        
-        var user = firebase.auth().currentUser;
+        firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+            
+            // Connect
+            isConnected = 1;
+            
+            var UserIdentity = {
+                email: email,
+                name : name, 
+                firstname : firstname,
+                phone : phone,
+                independant : independant,
+                company : company,
+                organization : organization,
+                supervisor: false,
+                validated: false,
+                zohocode : '',
+                idToken : idToken
+              };
 
-        // Add user information
-        db.collection("users").doc(user.uid).set(data)
-        .then(function() {
-            console.log("Document successfully written!");
-        })
-        .catch(function(error) {
-            console.error("Error writing document: ", error);
+            axios.post(process.env.URLCLOUD9 + '/createuser', UserIdentity)
+              .then(function (response) {
+                console.log(response.data);
+
+                res.render('pages/register',{email: email, isConnected: isConnected});
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+    
+        }).catch(function(error) {
+            console.log(error);
         });
-
-        isConnected = 1;
-
-        res.render('pages/register',{email: email, isConnected: isConnected});
 
         }).catch(function(error) {
         // Handle Errors here.
@@ -122,7 +123,7 @@ app.get('/idtoken', function(req,res) {
 
     firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
         // Send token to your backend via HTTPS
-        axios.post(process.env.URLCLOUD9 + '/checkauth', {
+        axios.post(process.env.URLCLOUD9 + '/createuser', {
             idToken: idToken
           })
           .then(function (response) {
