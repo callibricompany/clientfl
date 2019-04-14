@@ -1,0 +1,40 @@
+<!-- views/pages/register.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+</head>
+<body class="container">
+
+<header>
+    <% include ../partials/header %>
+</header>
+
+<main>
+
+    <div class="container">
+        <form class="" role="search" action="/createTicket" method="POST">
+            <div class="form-group">
+                <label for="comment">Subject:</label>
+                <textarea class="form-control" rows="5" id="subject"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="comment">Description:</label>
+                <textarea class="form-control" rows="5" id="description"></textarea>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="department" placeholder="FIN or OTH">
+            </div>
+            <button type="submit" class="btn btn-default">Sign Up</button>
+        </form>
+    </div>
+
+</main>
+
+<footer>
+    <% include ../partials/footer %>
+</footer>
+
+</body>
+</html>

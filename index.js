@@ -119,6 +119,42 @@ app.post('/register', function(req, res) {
 
 });
 
+// Create Ticket page
+app.get('/createticket', function(req, res) {
+  res.render('pages/ticket',{email: email, isConnected: isConnected});
+});
+
+// Create Ticket button
+app.post('/register', function(req, res) {
+  subject = req.body.subject;
+  description = req.body.description; 
+  department = req.body.department;
+
+  firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+        
+        var UserTicket = {
+            subject: subject,
+            descript : description, 
+            department : department,
+            idToken : idToken
+          };
+
+        axios.post(process.env.URLCLOUD9 + '/createticket', UserTicket)
+          .then(function (response) {
+            console.log(response.data);
+
+            res.render('pages/ticket',{email: email, isConnected: isConnected});
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
+    }).catch(function(error) {
+        console.log(error);
+    });
+
+});
+
 app.get('/idtoken', function(req,res) {
 
     firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
