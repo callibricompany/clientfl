@@ -129,6 +129,7 @@ app.post('/register', function(req, res) {
   subject = req.body.subject;
   description = req.body.description; 
   department = req.body.department;
+  isNewProduct = req.body.;
 
   firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
         
