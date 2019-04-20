@@ -2,7 +2,7 @@
 // load the things we need
 var express = require('express');
 var bodyParser = require('body-parser');
-var firebase = require('./connect');
+var { firebase , db } = require('./connect');
 var app = express();
 var axios = require('axios');
 require('dotenv').config();
@@ -16,6 +16,7 @@ var phone = '';
 var independant = '';
 var company = '';
 var organization = '';
+var products = [];
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
@@ -40,14 +41,21 @@ app.post('/', function(req, res) {
     password = req.body.password;
 
     firebase.auth().signInWithEmailAndPassword(email, password).then(() =>{
-        
-        isConnected = 1;
-
-        var user = firebase.auth().currentUser;
-
-        console.log(user.uid);
-
-        res.render('pages/index',{ email: email, isConnected: isConnected });
+            
+        db.collection('productScheme').get()
+        .then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                
+                var product = { id: doc.id, data: doc.data() };
+    
+                products.push(product);
+            });
+            isConnected = 1;
+            res.render('pages/index',{ email: email, isConnected: isConnected });
+        })
+        .catch(function(error) {
+            console.log("Error getting documents: ", error);
+        });
 
     }).catch(function(error) {
         // Handle Errors here.
@@ -129,7 +137,6 @@ app.post('/register', function(req, res) {
   subject = req.body.subject;
   description = req.body.description; 
   department = req.body.department;
-  isNewProduct = req.body.;
 
   firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
         
@@ -154,6 +161,33 @@ app.post('/register', function(req, res) {
         console.log(error);
     });
 
+});
+
+// Trade products
+app.get('/trade', function(req, res) {
+    var id = 0;
+
+    fields = Object.keys(products[id].data);
+
+    res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
+});
+
+// Trade other products
+app.post('/trade', function(req, res) {
+
+    var id = req.body.prod_id;
+    
+    fields = Object.keys(products[id].data);
+    
+    res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
+});
+
+// Trade other products
+app.post('/sendorder', function(req, res) {
+
+    console.log(req.body);
+
+    res.render('pages/ordersent',{email: email, isConnected: isConnected});
 });
 
 app.get('/idtoken', function(req,res) {

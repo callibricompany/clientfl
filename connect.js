@@ -13,4 +13,6 @@ var config = {
 };
 firebase.initializeApp(config);
 
-module.exports = firebase;
+var db = firebase.firestore();
+
+module.exports = { firebase , db };
