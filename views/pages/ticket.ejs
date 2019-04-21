@@ -14,14 +14,14 @@
 <main>
 
     <div class="container">
-        <form class="" role="search" action="/createTicket" method="POST">
+        <form class="" role="search" action="/createticket" method="POST">
             <div class="form-group">
                 <label for="comment">Subject:</label>
-                <textarea class="form-control" rows="5" id="subject"></textarea>
+                <textarea class="form-control" rows="5" id="subject" name="subject"></textarea>
             </div>
             <div class="form-group">
                 <label for="comment">Description:</label>
-                <textarea class="form-control" rows="5" id="description"></textarea>
+                <textarea class="form-control" rows="5" id="description" name="description"></textarea>
             </div>
             <div class="form-group">
                 <input type="text" class="form-control" name="department" placeholder="Ticket classification : FIN or OTH">

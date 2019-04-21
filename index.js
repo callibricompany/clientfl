@@ -133,7 +133,7 @@ app.get('/createticket', function(req, res) {
 });
 
 // Create Ticket button
-app.post('/register', function(req, res) {
+app.post('/createticket', function(req, res) {
   subject = req.body.subject;
   description = req.body.description; 
   department = req.body.department;
