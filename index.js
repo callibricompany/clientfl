@@ -134,20 +134,18 @@ app.get('/createticket', function(req, res) {
 
 // Create Ticket button
 app.post('/createticket', function(req, res) {
-  subject = req.body.subject;
-  description = req.body.description; 
-  department = req.body.department;
 
-  firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+    var UserTicket = req.body;
+  
+    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
         
-        var UserTicket = {
-            subject: subject,
-            descript : description, 
-            department : department,
-            idToken : idToken
-          };
+        let axiosConfig = {
+            headers: {
+                'bearer': idToken
+            }
+            };
 
-        axios.post(process.env.URLCLOUD9 + '/createticket', UserTicket)
+        axios.post(process.env.URLCLOUD9 + '/createticket', UserTicket, axiosConfig)
           .then(function (response) {
             console.log(response.data);
 
@@ -172,7 +170,7 @@ app.get('/trade', function(req, res) {
     res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
 });
 
-// Trade other products
+// Switch to other products
 app.post('/trade', function(req, res) {
 
     var id = req.body.prod_id;
@@ -185,9 +183,30 @@ app.post('/trade', function(req, res) {
 // Trade other products
 app.post('/sendorder', function(req, res) {
 
-    console.log(req.body);
+    var productcharac = req.body;
 
-    res.render('pages/ordersent',{email: email, isConnected: isConnected});
+    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {       
+
+        let axiosConfig = {
+            headers: {
+                'bearer': idToken
+            }
+            };
+
+        axios.post(process.env.URLCLOUD9 + '/createproduct', productcharac, axiosConfig)
+            .then(function (response) {
+              console.log(response.data);
+  
+              res.render('pages/ordersent',{email: email, isConnected: isConnected});
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+  
+      }).catch(function(error) {
+          console.log(error);
+      });
+
 });
 
 app.get('/idtoken', function(req,res) {
