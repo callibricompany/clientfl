@@ -184,6 +184,8 @@ app.post('/trade', function(req, res) {
 app.post('/sendorder', function(req, res) {
 
     var productcharac = req.body;
+    
+    console.log(productcharac);
 
     firebase.auth().currentUser.getIdToken(true).then(function(idToken) {       
 
