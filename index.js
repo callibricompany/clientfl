@@ -99,11 +99,16 @@ app.post('/register', function(req, res) {
                 organization : organization,
                 supervisor: false,
                 validated: false,
-                zohocode : '',
-                idToken : idToken
+                codeTS : '',
               };
 
-            axios.post(process.env.URLCLOUD9 + '/createuser', UserIdentity)
+            let axiosConfig = {
+                headers: {
+                    'bearer': idToken
+                }
+                };
+
+            axios.post(process.env.URLCLOUD9 + '/createuser', UserIdentity, axiosConfig)
               .then(function (response) {
                 console.log(response.data);
 
@@ -162,11 +167,48 @@ app.post('/createticket', function(req, res) {
 });
 
 // Trade products
+app.get('/comment', function(req, res) {
+
+    res.render('pages/comment',{email: email, isConnected: isConnected});
+
+});
+
+app.post('/createcomment', function(req, res) {
+
+    var comment = req.body;
+
+    console.log(comment);
+
+    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {       
+
+        let axiosConfig = {
+            headers: {
+                'bearer': idToken
+            }
+            };
+
+        axios.post(process.env.URLCLOUD9 + '/createMessage', comment, axiosConfig)
+            .then(function (response) {
+              console.log(response.data);
+  
+              res.render('pages/ordersent',{email: email, isConnected: isConnected, message: 'message added'});
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+  
+      }).catch(function(error) {
+          console.log(error);
+      });
+
+});
+
+// Trade products
 app.get('/trade', function(req, res) {
     var id = 0;
 
     fields = Object.keys(products[id].data);
-
+    console.log(products);
     res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
 });
 
@@ -176,7 +218,7 @@ app.post('/trade', function(req, res) {
     var id = req.body.prod_id;
     
     fields = Object.keys(products[id].data);
-    
+
     res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
 });
 
@@ -184,7 +226,7 @@ app.post('/trade', function(req, res) {
 app.post('/sendorder', function(req, res) {
 
     var productcharac = req.body;
-    
+
     console.log(productcharac);
 
     firebase.auth().currentUser.getIdToken(true).then(function(idToken) {       
@@ -199,7 +241,7 @@ app.post('/sendorder', function(req, res) {
             .then(function (response) {
               console.log(response.data);
   
-              res.render('pages/ordersent',{email: email, isConnected: isConnected});
+              res.render('pages/ordersent',{email: email, isConnected: isConnected, message: 'Order Created'});
             })
             .catch(function (error) {
               console.log(error);
