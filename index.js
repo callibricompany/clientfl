@@ -16,7 +16,9 @@ var phone = '';
 var independant = '';
 var company = '';
 var organization = '';
-var products = [];
+var requester_id = 0;
+var userProfile ;
+var uid = '';
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
@@ -41,20 +43,26 @@ app.post('/', function(req, res) {
     password = req.body.password;
 
     firebase.auth().signInWithEmailAndPassword(email, password).then(() =>{
-            
-        db.collection('productScheme').get()
-        .then(function(querySnapshot) {
-            querySnapshot.forEach(function(doc) {
+
+        isConnected = 1;
+
+        var user = firebase.auth().currentUser;
+        uid = user.uid;
+
+        var userInfo = db.collection('users').doc(uid);
+        var getDoc = userInfo.get()
+        .then(doc => {
+            if (!doc.exists) {
+            console.log('No such document!');
+            } else {
+                userProfile = doc.data();
+                requester_id = userProfile.codeTS
                 
-                var product = { id: doc.id, data: doc.data() };
-    
-                products.push(product);
-            });
-            isConnected = 1;
-            res.render('pages/index',{ email: email, isConnected: isConnected });
+                res.render('pages/index',{email: email, isConnected: isConnected});
+            }
         })
-        .catch(function(error) {
-            console.log("Error getting documents: ", error);
+        .catch(err => {
+            console.log('Error getting document', err);
         });
 
     }).catch(function(error) {
@@ -146,7 +154,8 @@ app.post('/createticket', function(req, res) {
         
         let axiosConfig = {
             headers: {
-                'bearer': idToken
+                'bearer': idToken,
+                'type': 'Demande Générale'
             }
             };
 
@@ -167,77 +176,101 @@ app.post('/createticket', function(req, res) {
 });
 
 // Trade products
-app.get('/comment', function(req, res) {
+app.get('/reply', function(req, res) {
 
-    res.render('pages/comment',{email: email, isConnected: isConnected});
+    allticketuser = [];
+
+    var query = db.collection('tickets')
+    .where('requester_id', '==', requester_id)
+    .get().then(querySnapshot => {
+        querySnapshot.forEach(doc => {      
+            var ticketuser = { id: doc.id, data: doc.data() };
+
+            allticketuser.push(ticketuser);
+            });
+
+        isConnected = 1;
+        res.render('pages/reply',{ email: email, isConnected: isConnected, allticketuser: allticketuser });
+        })
+    .catch(function(error) {
+            console.log("Error getting documents: ", error);
+        });
 
 });
 
-app.post('/createcomment', function(req, res) {
+app.post('/createreply', function(req, res) {
 
-    var comment = req.body;
+    var UserReply = req.body;
+    var FormatedReply;
 
-    console.log(comment);
+    var query = db.collection('agents')
+    .where('id', '==', allticketuser[UserReply.idTicket].data.responder_id)
+    .get().then(querySnapshot => {
+        querySnapshot.forEach(doc => {      
+            var emailAgent = doc.data().contact.email;
 
-    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {       
-
-        let axiosConfig = {
-            headers: {
-                'bearer': idToken
+            FormatedReply = { 
+                body : '<B>[' + userProfile.firstName + ' ' + userProfile.lastName + ']:</B> ' +UserReply.body,
+                cc_emails : [ emailAgent, userProfile.email ],
+                ticketId : allticketuser[UserReply.idTicket].data.id
             }
-            };
 
-        axios.post(process.env.URLCLOUD9 + '/createMessage', comment, axiosConfig)
-            .then(function (response) {
-              console.log(response.data);
-  
-              res.render('pages/ordersent',{email: email, isConnected: isConnected, message: 'message added'});
-            })
-            .catch(function (error) {
-              console.log(error);
+            firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+        
+                let axiosConfig = {
+                    headers: {
+                        'bearer': idToken,
+                    }
+                    };
+        
+                axios.post(process.env.URLCLOUD9 + '/createreply', FormatedReply, axiosConfig)
+                  .then(function (response) {
+                    console.log(response.data);
+        
+                    res.render('pages/reply',{ email: email, isConnected: isConnected, allticketuser: allticketuser });
+                  })
+                  .catch(function (error) {
+                    console.log(error);
+                  });
+        
+            }).catch(function(error) {
+                console.log(error);
             });
-  
-      }).catch(function(error) {
-          console.log(error);
-      });
+
+        })
+
+    })
+    .catch(function(error) {
+            console.log("Error getting documents: ", error);
+        });
 
 });
 
 // Trade products
 app.get('/trade', function(req, res) {
-    var id = 0;
 
-    fields = Object.keys(products[id].data);
-    console.log(products);
-    res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
-});
-
-// Switch to other products
-app.post('/trade', function(req, res) {
-
-    var id = req.body.prod_id;
-    
-    fields = Object.keys(products[id].data);
-
-    res.render('pages/trade',{email: email, isConnected: isConnected, products: products, fields: fields, id: id});
+    res.render('pages/trade',{email: email, isConnected: isConnected});
 });
 
 // Trade other products
 app.post('/sendorder', function(req, res) {
-
+console.log(req.body);
     var productcharac = req.body;
+    var type = req.body.type;
 
+    delete productcharac.type;
     console.log(productcharac);
-
     firebase.auth().currentUser.getIdToken(true).then(function(idToken) {       
 
         let axiosConfig = {
             headers: {
-                'bearer': idToken
+                'bearer': idToken,
+                'type' : type
             }
             };
 
-        axios.post(process.env.URLCLOUD9 + '/createproduct', productcharac, axiosConfig)
+        console.log(axiosConfig);
+        axios.post(process.env.URLCLOUD9 + '/createticket', productcharac, axiosConfig)
             .then(function (response) {
               console.log(response.data);
   
@@ -251,25 +284,6 @@ app.post('/sendorder', function(req, res) {
           console.log(error);
       });
 
-});
-
-app.get('/idtoken', function(req,res) {
-
-    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
-        // Send token to your backend via HTTPS
-        axios.post(process.env.URLCLOUD9 + '/createuser', {
-            idToken: idToken
-          })
-          .then(function (response) {
-            console.log(response);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-
-    }).catch(function(error) {
-        console.log(error);
-    });
 });
 
 app.listen(8080);
