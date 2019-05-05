@@ -12,10 +12,22 @@
 </header>
 
 <main>
-    <div class="jumbotron">
-        <h1>This is great</h1>
-        <p>Welcome to templating using EJS</p>
-    </div>
+    <%if (isConnected===1) { %>
+        <h1>Campaigns available</h1>
+        <div class="card" style="width: 18rem;">
+            <img class="card-img-top" src="https://www.amacoustics.com/sites/default/files/styles/medium/public/primebild_niva_soundabsorbent_4.jpg" alt="Card image cap">
+            <div class="card-body">
+            <h5 class="card-title"><B>Autocall septembre 2018</B></h5>
+            <p class="card-text">Découvrez le nouveau produit Autocall pour vos client.</p>
+            <a href="/subscription" class="btn btn-primary">Souscrire maintenant</a>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="jumbotron">
+            <h1>FINLIVE App</h1>
+            <p>Welcome to FINLIVE, the tool for CGP</p>
+        </div>
+    <% } %>
 </main>
 
 <footer>

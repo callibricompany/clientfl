@@ -286,5 +286,20 @@ console.log(req.body);
 
 });
 
+// Create Note page
+app.get('/note', function(req, res) {
+    res.render('pages/note',{email: email, isConnected: isConnected});
+  });
+
+// Create Broadcast page
+app.get('/broadcast', function(req, res) {
+    res.render('pages/broadcast',{email: email, isConnected: isConnected});
+  });
+
+// Create Subscription page
+app.get('/subscription', function(req, res) {
+    res.render('pages/subscription',{email: email, isConnected: isConnected});
+  });
+
 app.listen(8080);
 console.log('8080 is the clientfl port');
